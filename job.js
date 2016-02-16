@@ -1,10 +1,10 @@
 var co = require('co');
-var BTCE = require('btc-e');
+
+var Pair = require('./lib/trade/BBTradePair');
 
 /**
  * @type {BTCE}
  */
-var btceTrade = Promise.promisifyAll(new BTCE("3DG426VG-43FO0QW8-OIEIQ5E9-8IRBU5T5-YSG5D5BU", "b8d9077212a3d218d09165ef993e82e97906db5cb684298e2510d71ee78272bb"));
 
 var LTCRURPair = new Pair('',Currencies.LTC, Currencies.RUR, btceTrade);
 var LTCBTCPair = new Pair('',Currencies.LTC, Currencies.BTC, btceTrade);
@@ -13,3 +13,55 @@ var USDRURPair = new Pair('',Currencies.USD, Currencies.RUR, btceTrade);
 var NMCUSDPair = new Pair('',Currencies.NMC, Currencies.USD, btceTrade);
 var LTCUSDPair = new Pair('',Currencies.LTC, Currencies.USD, btceTrade);
 var NMCBTCPair = new Pair('',Currencies.NMC, Currencies.BTC, btceTrade);
+
+var Agenda = require('agenda');
+
+class BBIJob {
+
+    /**
+     * @abstract
+     */
+    constructor() {
+        if (!new.target) throw "BBIJob() must be called with new";
+
+        if (new.target === BBIJob) {
+            throw new TypeError("Cannot construct abstract instances directly");
+        }
+
+        this.config = null;
+
+        /** @type {Agenda} */
+        if(BBIJob.runner === undefined) {
+            BBIJob.runner = null;
+        }
+    }
+
+    initialize(config) {
+        this.config = config;
+
+        /** @type {Agenda} */
+        if(!(BBIJob.runner instanceof Agenda)) {
+            BBIJob.runner = new Agenda({
+                db: {
+                    address: this.config.agenda.url,
+                    collection: this.config.agenda.collection
+                }
+            });
+            BBIJob.runner.on('ready', function() {
+
+            });
+        }
+    }
+
+    *start() {
+        this.runner.start();
+    }
+
+    *stop() {
+        this.runner.stop();
+    }
+
+    add() {
+        this.runner.define()
+    }
+}
