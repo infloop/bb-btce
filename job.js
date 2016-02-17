@@ -1,19 +1,5 @@
 var co = require('co');
 
-var Pair = require('./lib/trade/BBTradePair');
-
-/**
- * @type {BTCE}
- */
-
-var LTCRURPair = new Pair('',Currencies.LTC, Currencies.RUR, btceTrade);
-var LTCBTCPair = new Pair('',Currencies.LTC, Currencies.BTC, btceTrade);
-var BTCRURPair = new Pair('',Currencies.BTC, Currencies.RUR, btceTrade);
-var USDRURPair = new Pair('',Currencies.USD, Currencies.RUR, btceTrade);
-var NMCUSDPair = new Pair('',Currencies.NMC, Currencies.USD, btceTrade);
-var LTCUSDPair = new Pair('',Currencies.LTC, Currencies.USD, btceTrade);
-var NMCBTCPair = new Pair('',Currencies.NMC, Currencies.BTC, btceTrade);
-
 var Agenda = require('agenda');
 
 class BBIJob {
@@ -31,12 +17,20 @@ class BBIJob {
         this.config = null;
 
         /** @type {Agenda} */
-        if(BBIJob.runner === undefined) {
+        if(!(BBIJob.runner instanceof Agenda)) {
             BBIJob.runner = null;
+            BBIJob.ready = false;
         }
+
+        process.on('SIGTERM', this.graceful);
+        process.on('SIGINT' , this.graceful);
     }
 
-    initialize(config) {
+    graceful() {
+        this.stop();
+    }
+
+    * initialize(config) {
         this.config = config;
 
         /** @type {Agenda} */
@@ -48,8 +42,10 @@ class BBIJob {
                 }
             });
             BBIJob.runner.on('ready', function() {
-
+                BBIJob.ready = true;
             });
+        } else {
+
         }
     }
 
@@ -58,10 +54,15 @@ class BBIJob {
     }
 
     *stop() {
-        this.runner.stop();
+        if(BBIJob.ready === true) {
+            BBIJob.ready = false;
+            this.runner.stop();
+        }
+}
+
+    add(name, options, func) {
+        this.runner.define(name, options, func);
     }
 
-    add() {
-        this.runner.define()
-    }
+
 }
