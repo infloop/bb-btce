@@ -41,11 +41,6 @@ class BBIJob {
                     collection: this.config.agenda.collection
                 }
             });
-            BBIJob.runner.on('ready', function() {
-                BBIJob.ready = true;
-            });
-        } else {
-
         }
     }
 
@@ -54,15 +49,15 @@ class BBIJob {
     }
 
     *stop() {
-        if(BBIJob.ready === true) {
+        if (BBIJob.ready === true) {
             BBIJob.ready = false;
             this.runner.stop();
         }
-}
-
-    add(name, options, func) {
-        this.runner.define(name, options, func);
     }
 
+    add(name, every, options, func) {
+        this.runner.define(name, options, func);
+        this.runner.every(every, name);
+    }
 
 }
