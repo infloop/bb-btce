@@ -1,6 +1,7 @@
 var co = require('co');
 
 var Agenda = require('agenda');
+var process = require('process');
 
 class BBIJob {
 
@@ -48,7 +49,7 @@ class BBIJob {
         this.runner.start();
     }
 
-    *stop() {
+    stop() {
         if (BBIJob.ready === true) {
             BBIJob.ready = false;
             this.runner.stop();
