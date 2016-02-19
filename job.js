@@ -1,64 +1,40 @@
+'use strict';
+
+var BBScheduler = require('./lib/scheduler/BBScheduler');
+var BBMarket = require('./lib/trade/BBMarket');
+var BBStorageSink = require('./lib/pipeline/BBStorageSink');
+var BBMongoStorage = require('./lib/storage/BBMongoStorage');
+var config = require('./lib/config');
 var co = require('co');
 
-var Agenda = require('agenda');
-var process = require('process');
+var scheduler = new BBScheduler();
+var marketBTCE = new BBMarket('BTC-E');
+var storage = new BBMongoStorage();
 
-class BBIJob {
 
-    /**
-     * @abstract
-     */
-    constructor() {
-        if (!new.target) throw "BBIJob() must be called with new";
+marketBTCE
+    .getStream()
+    .pipe(new BBStorageSink(storage));
 
-        if (new.target === BBIJob) {
-            throw new TypeError("Cannot construct abstract instances directly");
-        }
+co(function*() {
+    yield storage.initialize(config);
+    yield marketBTCE.initialize(config);
+    yield scheduler.initialize(config);
 
-        this.config = null;
+    scheduler.addJob('BTCE fetch', 'every 10 minutes', {}, function(job, cb) {
+        co(function*() {
+            yield marketBTCE.refresh();
+        }).then((val) => {
+            cb();
+        }, (err) => {
+            console.log(err);
+            cb();
+        });
+    });
 
-        /** @type {Agenda} */
-        if(!(BBIJob.runner instanceof Agenda)) {
-            BBIJob.runner = null;
-            BBIJob.ready = false;
-        }
-
-        process.on('SIGTERM', this.graceful);
-        process.on('SIGINT' , this.graceful);
-    }
-
-    graceful() {
-        this.stop();
-    }
-
-    * initialize(config) {
-        this.config = config;
-
-        /** @type {Agenda} */
-        if(!(BBIJob.runner instanceof Agenda)) {
-            BBIJob.runner = new Agenda({
-                db: {
-                    address: this.config.agenda.url,
-                    collection: this.config.agenda.collection
-                }
-            });
-        }
-    }
-
-    *start() {
-        this.runner.start();
-    }
-
-    stop() {
-        if (BBIJob.ready === true) {
-            BBIJob.ready = false;
-            this.runner.stop();
-        }
-    }
-
-    add(name, every, options, func) {
-        this.runner.define(name, options, func);
-        this.runner.every(every, name);
-    }
-
-}
+    yield scheduler.start();
+}).then((val) => {
+    console.log(val);
+}, (err) => {
+    console.log(err);
+});
