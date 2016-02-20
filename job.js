@@ -2,9 +2,9 @@
 
 var BBScheduler = require('./lib/scheduler/BBScheduler');
 var BBMarket = require('./lib/trade/BBMarket');
-var BBStorageSink = require('./lib/pipeline/BBStorageSink');
+var BBStorageSink = require('./lib/pipeline/lib/sinks/BBStorageSink');
 var BBMongoStorage = require('./lib/storage/BBMongoStorage');
-var BBDataToJSONFormatter = require('./lib/pipeline/BBDataToJSONFormatter');
+var BBDataToJSONFormatter = require('./lib/pipeline/lib/formatters/BBDataToJSONFormatter');
 var config = require('./lib/config');
 var co = require('co');
 
