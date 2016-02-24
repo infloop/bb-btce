@@ -16,6 +16,7 @@
     "lodash": "^3.10.0",
     "mongodb": "^2.1.7",
     "require-all": "^2.0.0",
-    "thunkify": "^2.1.2"
+    "thunkify": "^2.1.2",
+    "node-telegram-bot": "0.1.9"
   }
 }
