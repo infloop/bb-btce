@@ -5,12 +5,14 @@ var BBMarket = require('./lib/trade/BBMarket');
 var BBStorageSink = require('./lib/pipeline/lib/sinks/BBStorageSink');
 var BBMongoStorage = require('./lib/storage/BBMongoStorage');
 var BBDataToJSONFormatter = require('./lib/pipeline/lib/formatters/BBDataToJSONFormatter');
+var TelegramService = require('./lib/telegram/lib/telegram');
 var config = require('./lib/config');
 var co = require('co');
 
 var scheduler = new BBScheduler();
 var marketBTCE = new BBMarket('BTC-E');
 var storage = new BBMongoStorage();
+var telegramService = new TelegramService();
 
 
 marketBTCE
@@ -26,6 +28,7 @@ co(function*() {
     yield storage.initialize(config);
     yield marketBTCE.initialize(config);
     yield scheduler.initialize(config);
+    yield telegramService.initialize(config);
     yield scheduler.start();
     scheduler.addJob('BTCE fetch', '10 seconds', {}, function(job, cb) {
         co(function*() {
